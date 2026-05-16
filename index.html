@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لمحة</title>
+
+  <!--
+    Smart App Banner — shows a native iOS banner at the top of Safari
+    prompting the user to open/install the app. Requires the App Store ID.
+    Replace YOUR_APP_STORE_ID below.
+  -->
+  <meta name="apple-itunes-app"
+        content="app-id=YOUR_APP_STORE_ID, app-argument=lamha://ad/AD_ID_PLACEHOLDER">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: #f5f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .icon { font-size: 56px; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 8px; }
+    p  { font-size: 15px; color: #6e6e73; line-height: 1.5; margin-bottom: 28px; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: #007AFF; color: #fff; }
+    .btn-secondary {
+      background: #f5f5f7;
+      color: #007AFF;
+      border: 1px solid #e5e5ea;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e5e5ea;
+      border-top-color: #007AFF;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="spinner"></div>
+  <p>جارٍ فتح الإعلان...</p>
+</div>
+
+<script>
+  // Read the ad ID from the query string:  ?id=290
+  const params  = new URLSearchParams(window.location.search);
+  const adID    = params.get('id');
+  const deepLink = adID ? `lamha://ad/${adID}` : 'lamha://';
+  const appStore = 'https://apps.apple.com/app/id YOUR_APP_STORE_ID';
+  // ↑ replace YOUR_APP_STORE_ID with your numeric App Store ID, remove the space
+
+  // Try to open the app via the custom scheme.
+  // If the app is installed iOS switches to it immediately.
+  // If not, the browser ignores the lamha:// attempt, and after a short
+  // timeout we redirect to the App Store instead.
+  window.location.href = deepLink;
+
+  // Fallback: if still here after 1.8 s, app is not installed → App Store
+  const fallbackTimer = setTimeout(() => {
+    showFallback();
+  }, 1800);
+
+  // If the page hides (app opened), cancel the fallback so it doesn't fire
+  // when the user comes back.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearTimeout(fallbackTimer);
+  });
+  window.addEventListener('pagehide', () => clearTimeout(fallbackTimer));
+
+  function showFallback() {
+    document.getElementById('card').innerHTML = `
+      <div class="icon">📲</div>
+      <h1>تطبيق لمحة</h1>
+      <p>ثبّت التطبيق لعرض هذا الإعلان</p>
+      <a class="btn btn-primary" href="${appStore}">تحميل من App Store</a>
+      <a class="btn btn-secondary" href="${deepLink}">فتح التطبيق</a>
+    `;
+  }
+</script>
+</body>
+</html>
